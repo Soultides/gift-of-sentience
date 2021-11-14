@@ -1,0 +1,83 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Stick : MonoBehaviour
+{
+    Rigidbody rb;
+    public float forwardForce = 20f;
+    public float upForce = 7.5f;
+
+    public Material newMat;
+
+    public bool notCollided;
+
+    public LayerMask groundLayer;
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+        rb.AddForce(transform.forward * forwardForce, ForceMode.Impulse);
+        //rb.AddForce(transform.up * upForce, ForceMode.Impulse);
+
+    }
+
+    private void Update()
+    {
+        if (notCollided)
+        {
+            transform.RotateAround(transform.position, transform.up, Time.deltaTime * 270f);
+        }
+
+    }
+
+    private void OnCollisionEnter(Collision col)
+    {
+        Debug.Log("Collided");
+
+        if (col.gameObject.tag == "Stickable")
+        {
+            notCollided = false;
+
+            Debug.Log(col.gameObject.name);
+
+            ChangeMaterial(newMat);
+            gameObject.layer = groundLayer.value;
+
+            /*
+            // creates joint
+            FixedJoint joint = gameObject.AddComponent<FixedJoint>();
+            // sets joint position to point of contact
+            joint.anchor = col.contacts[0].point;
+            // conects the joint to the other object
+            joint.connectedBody = col.contacts[0].otherCollider.transform.GetComponentInParent<Rigidbody>();
+            // Stops objects from continuing to collide and creating more joints
+            joint.enableCollision = false;
+            */
+            rb.angularVelocity = Vector3.zero;
+            rb.velocity = Vector3.zero;
+            rb.isKinematic = true;
+
+            Debug.Log("Stick");
+        }
+
+    }
+
+    void ChangeMaterial(Material newMat)
+    {
+        Renderer[] children;
+        children = GetComponentsInChildren<Renderer>();
+        foreach (Renderer rend in children)
+        {
+            var mats = new Material[rend.materials.Length];
+            for (var j = 0; j < rend.materials.Length; j++)
+            {
+                mats[j] = newMat;
+            }
+
+            rend.materials = mats;
+        }
+
+
+    }
+}
