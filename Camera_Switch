@@ -1,0 +1,116 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Cinemachine;
+
+public class Camera_Switch : MonoBehaviour
+{
+    public GameObject Cam;
+
+    //tP stands for third person
+    public GameObject tPCam;
+    public CinemachineFreeLook tPFL;
+    public CinemachineCollider tPCol;
+
+    public GameObject reticle;
+    public GameObject slimeMesh;
+    public GameObject Player;
+    public Transform overShoulder;
+
+    public bool aiming;
+
+    public LayerMask groundLayer;
+
+    public GameManager gm;
+    public int localBlobCount;
+
+    public Animator anim;
+
+    void Start()
+    {
+
+        tPFL = tPCam.GetComponent<CinemachineFreeLook>();
+        tPCol = tPCam.GetComponent<CinemachineCollider>();
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        localBlobCount = gm.GetComponent<GameManager>().blobCount;
+
+        if (Input.GetButton("Fire2") && localBlobCount >= 1 && Player.GetComponent<PlayerMovement>().Shoot)
+        {
+            aiming = true;
+        }
+
+        else
+        {
+            aiming = false;
+        }
+
+        Aim();
+
+    }
+
+    void Aim()
+    {
+        if (aiming)
+        {
+            Cam.transform.position = Vector3.Lerp(Cam.transform.position, overShoulder.position, 1f);
+            //Debug.Log("Over the Shoulder view?");
+            tPFL.m_RecenterToTargetHeading.m_enabled = true;
+            tPFL.m_RecenterToTargetHeading.m_WaitTime = 0.5f;
+
+            tPCol.enabled = false;
+            tPCol.m_Strategy = CinemachineCollider.ResolutionStrategy.PreserveCameraDistance;
+
+
+            if (Physics.Raycast(slimeMesh.transform.position, Cam.transform.forward, out RaycastHit hitinfo, 1000f, groundLayer.value))
+            {
+
+                reticle.SetActive(true);
+                reticle.transform.position = hitinfo.point;
+                tPFL.m_LookAt = reticle.transform;
+
+                anim.enabled = false;
+                Debug.Log("LookAt Reticle");
+                slimeMesh.transform.LookAt(reticle.transform);
+
+            }
+
+            else
+            {
+                reticle.SetActive(false);
+                anim.enabled = true;
+
+                //tPFL.m_Follow = slimeMesh.transform;
+                tPFL.m_LookAt = slimeMesh.transform;
+
+                slimeMesh.transform.rotation = Player.transform.rotation;
+
+                tPCol.m_Strategy = CinemachineCollider.ResolutionStrategy.PullCameraForward;
+                tPCol.enabled = true;
+
+            }
+        }
+
+        if (aiming == false)
+        {
+
+            reticle.SetActive(false);
+            anim.enabled = true;
+
+            //tPFL.m_Follow = Player.transform;
+            tPFL.m_LookAt = Player.transform;
+
+            slimeMesh.transform.rotation = Player.transform.rotation;
+
+            tPCol.m_Strategy = CinemachineCollider.ResolutionStrategy.PullCameraForward;
+            tPCol.enabled = true;
+
+        }
+
+        
+    }
+}
