@@ -1,0 +1,88 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class FaceCamera : MonoBehaviour
+{
+    public GameObject thoughtBubble;
+
+    public Sprite Stack;
+    public Sprite Shoot;
+    public Sprite Stick;
+    public Sprite DoubleJump;
+
+    public GameObject StickScene;
+    public GameObject StackScene;
+    public GameObject DoubleJumpScene;
+    public GameObject PlatformScene;
+
+    public GameObject Player;
+    public bool sceneHappening;
+    public GameObject Scene;
+
+    private void OnTriggerEnter(Collider collision)
+    {
+        Scene = collision.GetComponent<GameObject>();
+
+        Debug.Log("Thought Triggered");
+
+        if (collision.gameObject.name == StickScene.name)
+        {
+            Debug.Log("Display Stick");
+            thoughtBubble.GetComponent<Image>().sprite = Shoot;
+            Player.GetComponent<PlayerMovement>().Shoot = true;
+        }
+
+       else  if (collision.gameObject.name == StackScene.name)
+        {
+            Debug.Log("Display Stack");
+            thoughtBubble.GetComponent<Image>().sprite = Stack;
+        }
+
+        else if (collision.gameObject.name == DoubleJumpScene.name)
+        {
+
+            Debug.Log("Display DoubleJump");
+            thoughtBubble.GetComponent<Image>().sprite = DoubleJump;
+            Player.GetComponent<PlayerMovement>().doubleJump = true;
+        }
+
+        else if (collision.gameObject.name == PlatformScene.name)
+        {
+
+            Debug.Log("Display Platform");
+            thoughtBubble.GetComponent<Image>().sprite = Stick;
+
+        }
+
+    }
+
+    void Update()
+    {
+        if (Scene = null)
+        {
+
+            sceneHappening = false;
+
+        }
+
+        if (Scene != null)
+        {
+
+            sceneHappening = Scene.GetComponent<CutScene_Trigger>().cutScene;
+
+        }
+
+        if (Input.GetButtonDown("Help")&& sceneHappening == false)
+        {
+            thoughtBubble.SetActive(true);
+        }
+
+        if (Input.GetButtonUp("Help") && sceneHappening == false)
+        {
+            thoughtBubble.SetActive(false);
+        }
+
+    }
+}
