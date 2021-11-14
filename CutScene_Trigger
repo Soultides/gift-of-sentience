@@ -1,0 +1,115 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Cinemachine;
+using UnityEngine.UI;
+
+public class CutScene_Trigger : MonoBehaviour
+{
+    public Animator camAnim;
+    public GameObject Cam;
+    public GameObject thirdPersonCam;
+
+    public GameObject Player;
+    public float cutSceneTime = 3f;
+    public bool cutScene;
+
+    public int triggers;
+
+    public string boolTrigger;
+
+    public float thinkTime = 6f;
+
+    public GameObject thoughtBubble;
+
+    public AudioSource audioSource;
+    public AudioSource backgroundAudio;
+    public AudioClip clip;
+
+    public float duration;
+    public float targetVolume;
+
+    float targetVolumeIn;
+
+    private void Start()
+    {
+        boolTrigger = gameObject.name;
+        
+        thirdPersonCam.SetActive(false);
+        thirdPersonCam.SetActive(true);
+        thoughtBubble.SetActive(false);
+
+        cutScene = false;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.tag == "Player" && triggers == 0)
+        {
+
+            CutScene();
+
+        }
+    }
+
+    public void CutScene()
+    {
+        cutScene = true;
+        targetVolumeIn = backgroundAudio.volume;
+        StartCoroutine(FadeAudioSource.StartFade(backgroundAudio, duration, targetVolume));
+        Invoke("PlayCutsceneSong", duration);
+
+        Player.GetComponent<PlayerMovement>().canMove = false;
+        thirdPersonCam.SetActive(false);
+        camAnim.SetBool(boolTrigger, true);
+        Invoke("StopCutScene", cutSceneTime);
+        triggers += 1;
+    }
+
+    void StopCutScene()
+    {
+
+        camAnim.SetBool(boolTrigger, false);
+        camAnim.SetBool("Thinking", true);
+        Invoke("Thoughts", 0.5f);
+        Invoke("StopThinking", thinkTime);
+
+    }
+
+    void Thoughts()
+    {
+        thoughtBubble.SetActive(true);
+    }
+
+    void StopThinking()
+    {
+
+        camAnim.SetBool("Thinking", false);
+        thoughtBubble.SetActive(false);
+        Invoke("GiveBackControl", 1f);
+
+    }
+
+    void GiveBackControl()
+    {
+
+        thirdPersonCam.SetActive(true);
+        Invoke("GiveBackMovement", 1f);
+
+    }
+
+    void GiveBackMovement()
+    {
+        StartCoroutine(FadeAudioSource.StartFade(backgroundAudio, duration, targetVolumeIn));
+
+        Player.GetComponent<PlayerMovement>().canMove = true;
+        cutScene = false;
+    }
+
+
+    void PlayCutsceneSong() 
+    {
+        audioSource.PlayOneShot(clip);
+    }
+
+}
